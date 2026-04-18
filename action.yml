@@ -1,53 +1,54 @@
-name: "Aliyun OSS SSL/TLS Certificate Update"
-description: "Update OSS custom-domain SSL/TLS certificate via official Python SDK"
-author: "zylnt"
+name: OSS CNAME Certificate Update
+description: Update OSS bucket CNAME certificate using Alibaba Cloud OSS Python SDK
 branding:
-  icon: "shield"
-  color: "orange"
+  icon: shield
+  color: orange
 
 inputs:
-  access-key-id:
-    description: "Alibaba Cloud AccessKey ID"
+  access_key_id:
+    description: Alibaba Cloud Access Key ID
     required: true
-  access-key-secret:
-    description: "Alibaba Cloud AccessKey Secret"
+  access_key_secret:
+    description: Alibaba Cloud Access Key Secret
+    required: true
+  bucket:
+    description: OSS bucket name
     required: true
   region:
-    description: "OSS region, e.g. cn-hangzhou"
+    description: OSS region or endpoint fragment
     required: true
-  bucket-name:
-    description: "OSS bucket name"
-    required: true
-  target-cname:
-    description: "Target custom domain bound to OSS"
-    required: true
-  certificate:
-    description: "PEM certificate content"
-    required: false
-  private-key:
-    description: "PEM private key content"
-    required: false
-  certificate-path:
-    description: "Path to PEM certificate file"
-    required: false
-  private-key-path:
-    description: "Path to PEM private key file"
-    required: false
-  force:
-    description: "Force update certificate"
-    required: false
-    default: "true"
-
-outputs:
-  updated:
-    description: "Whether certificate update was performed"
   domain:
-    description: "Updated custom domain"
-  cert-id:
-    description: "Bound certificate ID after update"
-  cert-valid-end-date:
-    description: "Certificate expiration time after update"
+    description: Bound custom domain for CNAME
+    required: true
+  certificate_path:
+    description: Fullchain certificate file path
+    required: true
+  private_key_path:
+    description: Private key file path
+    required: true
 
 runs:
-  using: "docker"
-  image: "Dockerfile"
+  using: composite
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install oss2
+
+    - name: Update OSS CNAME certificate
+      shell: bash
+      run: |
+        python "${{ github.action_path }}/main.py" \
+          --access-key-id "${{ inputs.access_key_id }}" \
+          --access-key-secret "${{ inputs.access_key_secret }}" \
+          --bucket "${{ inputs.bucket }}" \
+          --region "${{ inputs.region }}" \
+          --domain "${{ inputs.domain }}" \
+          --certificate-path "${{ inputs.certificate_path }}" \
+          --private-key-path "${{ inputs.private_key_path }}"
