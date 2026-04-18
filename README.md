@@ -2,12 +2,21 @@
 
 使用阿里云官方 Python SDK（`oss2`）更新 OSS Bucket 绑定 CNAME 域名的证书。
 
+当前实现为 **Composite Action + Python 3.11**，入口脚本为仓库根目录 `main.py`。
+
 ## 特性
 
 - 使用 `PutBucketCname` 更新 CNAME 证书
 - 自动检查当前证书是否过期
 - 未过期证书走 `previous_cert_id` 轮替
 - 输入 `region` 时自动规范化 endpoint（支持 region/oss-xxx/完整 endpoint）
+
+## 行为说明
+
+- 如果 `domain` 不在目标 bucket 的 CNAME 列表中，Action 会失败退出（exit code 1）
+- 如果当前证书未过期，会携带 `previous_cert_id` 进行轮替更新
+- 如果当前证书过期或未绑定证书，会创建并重新绑定证书
+- 当前版本**不提供 outputs**，请通过日志判断执行结果
 
 ## 输入参数
 
@@ -16,10 +25,16 @@
 | `access_key_id` | 是 | 阿里云 Access Key ID |
 | `access_key_secret` | 是 | 阿里云 Access Key Secret |
 | `bucket` | 是 | OSS Bucket 名称 |
-| `region` | 是 | OSS 区域或 endpoint 片段（如 `cn-hangzhou` / `oss-cn-hangzhou` / `oss-cn-hangzhou.aliyuncs.com`） |
+| `region` | 是 | OSS 区域或 endpoint 片段（如 `cn-hangzhou` / `oss-cn-hangzhou` / `oss-cn-hangzhou.aliyuncs.com`）；建议优先传 `cn-hangzhou` 这类 region ID |
 | `domain` | 是 | 已绑定到 OSS 的 CNAME 域名 |
 | `certificate_path` | 是 | 证书 fullchain 文件路径 |
 | `private_key_path` | 是 | 私钥文件路径 |
+
+## 前置要求
+
+- 目标 bucket 已绑定 `domain`（CNAME）
+- 证书文件在当前 job 中可访问（如 `certs/fullchain.pem`、`certs/privkey.pem`）
+- RAM 账号具备 OSS CNAME 与证书相关权限
 
 ## 使用示例
 
@@ -46,6 +61,14 @@ jobs:
           certificate_path: certs/fullchain.pem
           private_key_path: certs/privkey.pem
 ```
+
+建议仓库变量与密钥：
+
+- `vars.OSS_BUCKET`
+- `vars.OSS_REGION`
+- `secrets.ALIYUN_ACCESS_KEY_ID`
+- `secrets.ALIYUN_ACCESS_KEY_SECRET`
+- `secrets.DOMAIN`
 
 ## acme.sh 签发并上传 OSS（完整示例）
 
