@@ -1,0 +1,53 @@
+name: "Aliyun OSS SSL/TLS Certificate Update"
+description: "Update OSS custom-domain SSL/TLS certificate via official Python SDK"
+author: "zylnt"
+branding:
+  icon: "shield"
+  color: "orange"
+
+inputs:
+  access-key-id:
+    description: "Alibaba Cloud AccessKey ID"
+    required: true
+  access-key-secret:
+    description: "Alibaba Cloud AccessKey Secret"
+    required: true
+  region:
+    description: "OSS region, e.g. cn-hangzhou"
+    required: true
+  bucket-name:
+    description: "OSS bucket name"
+    required: true
+  target-cname:
+    description: "Target custom domain bound to OSS"
+    required: true
+  certificate:
+    description: "PEM certificate content"
+    required: false
+  private-key:
+    description: "PEM private key content"
+    required: false
+  certificate-path:
+    description: "Path to PEM certificate file"
+    required: false
+  private-key-path:
+    description: "Path to PEM private key file"
+    required: false
+  force:
+    description: "Force update certificate"
+    required: false
+    default: "true"
+
+outputs:
+  updated:
+    description: "Whether certificate update was performed"
+  domain:
+    description: "Updated custom domain"
+  cert-id:
+    description: "Bound certificate ID after update"
+  cert-valid-end-date:
+    description: "Certificate expiration time after update"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
