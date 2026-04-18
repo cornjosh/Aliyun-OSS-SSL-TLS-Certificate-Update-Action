@@ -1,4 +1,4 @@
-name: OSS CNAME Certificate Update
+name: Aliyun OSS SSL/TLS Certificate Update Action
 description: Update OSS bucket CNAME certificate using Alibaba Cloud OSS Python SDK
 branding:
   icon: shield
